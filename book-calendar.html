@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Reading Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1916;
+    --surface2: #242220;
+    --border: #2e2c28;
+    --text: #f0ece4;
+    --text-muted: #7a776e;
+    --text-dim: #4a4843;
+    --accent: #c8a96e;
+    --accent2: #8fb89a;
+
+    /* Book colors */
+    --book-1: #c85c5c;
+    --book-2: #8888aa;
+    --book-3: #4caf80;
+    --book-4: #555566;
+    --book-5: #5b9bd5;
+    --book-6: #7c6fb0;
+    --book-7: #d4914a;
+    --book-8: #c8bf3c;
+    --book-9: #b85d8a;
+    --book-10: #4e9e8e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 16px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .app-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .app-title span {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: var(--border); color: var(--text); }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .month-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .month-label .year {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    margin-left: 6px;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .stats-bar::-webkit-scrollbar { display: none; }
+
+  .stat-item {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* CALENDAR */
+  .calendar-wrap {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .calendar-wrap::-webkit-scrollbar { display: none; }
+
+  .calendar {
+    min-width: 340px;
+    padding: 0;
+  }
+
+  /* Day headers */
+  .day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 120px;
+    background: var(--bg);
+    z-index: 50;
+  }
+
+  .day-header {
+    text-align: center;
+    padding: 10px 0 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .day-header.weekend { color: var(--text-muted); }
+
+  /* Grid */
+  .weeks {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    min-height: 80px;
+  }
+
+  .week-row:last-child { border-bottom: none; }
+
+  .day-cell {
+    border-right: 1px solid var(--border);
+    padding: 6px 5px 4px;
+    position: relative;
+    min-height: 80px;
+  }
+  .day-cell:last-child { border-right: none; }
+  .day-cell.other-month { opacity: 0.3; }
+  .day-cell.today .day-num {
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2px;
+  }
+
+  .day-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .page-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    text-align: center;
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .page-count.is-best { color: var(--accent); }
+  .page-count.is-best::before { content: '🏆'; font-size: 7px; }
+
+  /* BOOK BARS overlaid on the week row */
+  .book-bars-layer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .book-bar {
+    position: absolute;
+    height: 8px;
+    border-radius: 4px;
+    opacity: 0.85;
+    pointer-events: all;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .book-bar:hover { opacity: 1; transform: scaleY(1.3); }
+
+  /* Book cover thumbnail on bar */
+  .book-cover-pin {
+    position: absolute;
+    width: 28px;
+    height: 40px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 2px solid var(--bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    top: -16px;
+    transform: translateX(-50%);
+  }
+
+  .book-cover-pin img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .book-cover-pin.no-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6px;
+    text-align: center;
+    padding: 2px;
+    font-weight: 600;
+    color: white;
+    line-height: 1.1;
+  }
+
+  /* TOOLTIP */
+  .tooltip {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    max-width: 200px;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  .tooltip.visible { opacity: 1; transform: translateY(0); }
+
+  .tooltip-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text);
+  }
+
+  .tooltip-author {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .tooltip-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tooltip-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+
+  .tooltip-rating {
+    color: var(--accent);
+  }
+
+  /* BOOK LIST */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-muted);
+    padding: 16px 16px 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .book-list {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .book-list::-webkit-scrollbar { display: none; }
+
+  .book-card {
+    flex-shrink: 0;
+    width: 80px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .book-card:hover { transform: translateY(-3px); }
+
+  .book-card-cover {
+    width: 80px;
+    height: 112px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    position: relative;
+    box-shadow: 3px 3px 12px rgba(0,0,0,0.5);
+  }
+
+  .book-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+  .book-card-cover.no-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .book-card-title {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .book-card-rating {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    text-align: center;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+
+  .status-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ADD BOOK MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-top: 1px solid var(--border);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .form-field {
+    margin-bottom: 12px;
+  }
+
+  .form-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  .btn-submit:hover { opacity: 0.85; }
+
+  /* COLOR PICKER */
+  .color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.1s, border-color 0.1s;
+  }
+  .color-swatch.selected { border-color: white; transform: scale(1.15); }
+
+  /* LEGEND */
+  .legend {
+    padding: 12px 16px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .legend-icon { font-size: 12px; }
+
+  @media (min-width: 480px) {
+    .day-cell { min-height: 90px; }
+    .book-bar { height: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="app-title">Reading <span>Calendar</span></div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openModal()" title="Add Book">+</button>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button class="nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+    <div>
+      <span class="month-label" id="monthLabel">May</span>
+      <span class="month-label year" id="yearLabel">2025</span>
+    </div>
+    <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
+  </div>
+</header>
+
+<!-- STATS -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-item">
+    <span class="stat-value" id="statBooks">8</span>
+    <span class="stat-label">Books</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value" id="statPages">3,537</span>
+    <span class="stat-label">Pages</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value" id="statAvgDay">114</span>
+    <span class="stat-label">Avg/Day</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value" id="statBest">248</span>
+    <span class="stat-label">Best Day</span>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="calendar-wrap">
+  <div class="calendar">
+    <div class="day-headers">
+      <div class="day-header">Mon</div>
+      <div class="day-header">Tue</div>
+      <div class="day-header">Wed</div>
+      <div class="day-header">Thu</div>
+      <div class="day-header weekend">Fri</div>
+      <div class="day-header weekend">Sat</div>
+      <div class="day-header weekend">Sun</div>
+    </div>
+    <div class="weeks" id="calendarGrid"></div>
+  </div>
+</div>
+
+<!-- BOOK LEGEND / LIST -->
+<div class="section-title">Books this month</div>
+<div class="book-list" id="bookList"></div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-icon">📖</span> Pages Read</div>
+  <div class="legend-item"><span class="legend-icon">🏆</span> Best Day</div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip">
+  <div style="display:flex;gap:10px;align-items:flex-start">
+    <div id="ttCoverWrap" style="flex-shrink:0;display:none;">
+      <img id="ttCover" src="" alt=""
+        style="width:44px;height:62px;object-fit:cover;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,0.5);">
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div class="tooltip-title" id="ttTitle"></div>
+      <div class="tooltip-author" id="ttAuthor"></div>
+      <div class="tooltip-meta">
+        <span class="tooltip-tag" id="ttPages"></span>
+        <span class="tooltip-tag tooltip-rating" id="ttRating"></span>
+        <span class="tooltip-tag" id="ttStatus"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BOOK MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add a Book</div>
+
+    <div class="form-field">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-input" id="inputTitle" placeholder="Book title…">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Author</label>
+      <input type="text" class="form-input" id="inputAuthor" placeholder="Author name…">
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Start Date</label>
+        <input type="date" class="form-input" id="inputStart">
+      </div>
+      <div class="form-field">
+        <label class="form-label">End Date</label>
+        <input type="date" class="form-input" id="inputEnd">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Pages</label>
+        <input type="number" class="form-input" id="inputPages" placeholder="320">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Rating (0–5)</label>
+        <input type="number" class="form-input" id="inputRating" placeholder="4.5" step="0.25" min="0" max="5">
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="inputStatus">
+        <option value="read">Read</option>
+        <option value="reading">Currently Reading</option>
+        <option value="dnf">DNF</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Cover Image URL</label>
+      <input type="url" class="form-input" id="inputCoverUrl" placeholder="https://… (optional)">
+      <div id="coverPreviewWrap" style="margin-top:8px;display:none;text-align:center;">
+        <img id="coverPreview" src="" alt="Cover preview"
+          style="height:80px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.5);object-fit:cover;">
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Cover Color</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+
+    <button class="btn-submit" onclick="addBook()">Add to Calendar</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const COLORS = [
+  '#c85c5c','#d4914a','#c8bf3c','#4caf80','#5b9bd5',
+  '#7c6fb0','#b85d8a','#8888aa','#555566','#4e9e8e',
+  '#a86232','#6c9e5a'
+];
+
+let selectedColor = COLORS[0];
+let currentYear = 2025;
+let currentMonth = 4; // 0-indexed, 4 = May
+
+// Sample books (May 2025 matches the screenshot)
+let books = [
+  {
+    id: 1, title: "The Thursday Murder Club", author: "Richard Osman",
+    start: "2025-05-01", end: "2025-05-02",
+    pages: 331, rating: 4.0, status: "read", color: "#c85c5c",
+    coverUrl: "https://covers.openlibrary.org/b/id/10519680-L.jpg"
+  },
+  {
+    id: 2, title: "Careless People", author: "Sarah Wynn-Williams",
+    start: "2025-05-04", end: "2025-05-09",
+    pages: 352, rating: 4.0, status: "read", color: "#8888aa",
+    coverUrl: "https://covers.openlibrary.org/b/id/14805775-L.jpg"
+  },
+  {
+    id: 3, title: "This Inevitable Ruin", author: "Matt Dinniman",
+    start: "2025-05-11", end: "2025-05-11",
+    pages: 248, rating: 4.5, status: "read", color: "#4caf80",
+    coverUrl: ""
+  },
+  {
+    id: 4, title: "Dead Wake", author: "Erik Larson",
+    start: "2025-05-12", end: "2025-05-15",
+    pages: 430, rating: 3.5, status: "read", color: "#555566",
+    coverUrl: "https://covers.openlibrary.org/b/id/8739161-L.jpg"
+  },
+  {
+    id: 5, title: "Cat's Cradle", author: "Kurt Vonnegut",
+    start: "2025-05-15", end: "2025-05-16",
+    pages: 306, rating: 4.25, status: "read", color: "#5b9bd5",
+    coverUrl: "https://covers.openlibrary.org/b/id/8380812-L.jpg"
+  },
+  {
+    id: 6, title: "God Bless You, Mr. Rosewater", author: "Kurt Vonnegut",
+    start: "2025-05-16", end: "2025-05-17",
+    pages: 234, rating: 4.0, status: "read", color: "#7c6fb0",
+    coverUrl: "https://covers.openlibrary.org/b/id/8380928-L.jpg"
+  },
+  {
+    id: 7, title: "A Parade of Horrors", author: "Matt Dinniman",
+    start: "2025-05-25", end: "2025-05-29",
+    pages: 491, rating: 4.25, status: "read", color: "#d4914a",
+    coverUrl: ""
+  },
+  {
+    id: 8, title: "The Simplest Baby Book", author: "Various",
+    start: "2025-05-29", end: "2025-05-31",
+    pages: 267, rating: 4.0, status: "read", color: "#c8bf3c",
+    coverUrl: ""
+  },
+  {
+    id: 9, title: "Arsenal: The Making of a Club", author: "Various",
+    start: "2025-05-30", end: null,
+    pages: 320, rating: null, status: "reading", color: "#c85c5c",
+    coverUrl: ""
+  },
+  {
+    id: 10, title: "One Hundred Years of Solitude", author: "Gabriel García Márquez",
+    start: "2025-05-31", end: null,
+    pages: 448, rating: null, status: "reading", color: "#8888aa",
+    coverUrl: "https://covers.openlibrary.org/b/id/8231432-L.jpg"
+  }
+];
+
+let nextId = 11;
+
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+
+function parseDate(str) {
+  if (!str) return null;
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year, month) {
+  // 0=Sun..6=Sat → convert to Mon-first: 0=Mon..6=Sun
+  let d = new Date(year, month, 1).getDay();
+  return (d === 0) ? 6 : d - 1;
+}
+
+// Pages per day (distributed evenly across the reading span)
+function pagesForDay(book, dateStr) {
+  const start = parseDate(book.start);
+  const end = book.end ? parseDate(book.end) : parseDate(book.start);
+  const target = parseDate(dateStr);
+  if (target < start || target > end) return 0;
+  const days = Math.round((end - start) / 86400000) + 1;
+  return Math.round(book.pages / days);
+}
+
+function booksInMonth(year, month) {
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0);
+  return books.filter(b => {
+    const s = parseDate(b.start);
+    const e = b.end ? parseDate(b.end) : (b.status === 'reading' ? monthEnd : s);
+    return s <= monthEnd && e >= monthStart;
+  });
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────────────
+
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+
+function render() {
+  document.getElementById('monthLabel').textContent = MONTH_NAMES[currentMonth];
+  document.getElementById('yearLabel').textContent = currentYear;
+
+  renderCalendar();
+  renderBookList();
+  renderStats();
+}
+
+function renderStats() {
+  const monthBooks = booksInMonth(currentYear, currentMonth);
+  const days = getDaysInMonth(currentYear, currentMonth);
+  let totalPages = 0, bestDay = 0;
+  const completedBooks = new Set();
+
+  for (let d = 1; d <= days; d++) {
+    const ds = toDateStr(new Date(currentYear, currentMonth, d));
+    let dayPages = 0;
+    monthBooks.forEach(b => {
+      const p = pagesForDay(b, ds);
+      dayPages += p;
+      if (p > 0) completedBooks.add(b.id);
+    });
+    totalPages += dayPages;
+    if (dayPages > bestDay) bestDay = dayPages;
+  }
+
+  document.getElementById('statBooks').textContent = monthBooks.length;
+  document.getElementById('statPages').textContent = totalPages.toLocaleString();
+  document.getElementById('statAvgDay').textContent = Math.round(totalPages / days);
+  document.getElementById('statBest').textContent = bestDay;
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  const days = getDaysInMonth(currentYear, currentMonth);
+  const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+  const monthBooks = booksInMonth(currentYear, currentMonth);
+
+  // Compute per-day page totals and best day
+  const dayPageMap = {};
+  let bestPages = 0;
+  for (let d = 1; d <= days; d++) {
+    const ds = toDateStr(new Date(currentYear, currentMonth, d));
+    let total = 0;
+    monthBooks.forEach(b => { total += pagesForDay(b, ds); });
+    dayPageMap[ds] = total;
+    if (total > bestPages) bestPages = total;
+  }
+
+  // Total cells
+  const totalCells = Math.ceil((firstDay + days) / 7) * 7;
+  const today = toDateStr(new Date());
+
+  for (let week = 0; week < totalCells / 7; week++) {
+    const row = document.createElement('div');
+    row.className = 'week-row';
+
+    // Determine which dates fall in this week
+    const weekDates = [];
+    for (let col = 0; col < 7; col++) {
+      const cellIndex = week * 7 + col;
+      const dayNum = cellIndex - firstDay + 1;
+      weekDates.push(dayNum);
+    }
+
+    // Render day cells
+    for (let col = 0; col < 7; col++) {
+      const dayNum = weekDates[col];
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+
+      if (dayNum < 1 || dayNum > days) {
+        cell.classList.add('other-month');
+        const otherNum = document.createElement('div');
+        otherNum.className = 'day-num';
+        if (dayNum < 1) {
+          const prevDays = getDaysInMonth(currentYear, currentMonth - 1 < 0 ? 11 : currentMonth - 1);
+          otherNum.textContent = prevDays + dayNum;
+        } else {
+          otherNum.textContent = dayNum - days;
+        }
+        cell.appendChild(otherNum);
+      } else {
+        const ds = toDateStr(new Date(currentYear, currentMonth, dayNum));
+        if (ds === today) cell.classList.add('today');
+
+        const numEl = document.createElement('div');
+        numEl.className = 'day-num';
+        numEl.textContent = dayNum;
+        cell.appendChild(numEl);
+
+        const pages = dayPageMap[ds];
+        if (pages > 0) {
+          const pc = document.createElement('div');
+          pc.className = 'page-count' + (pages === bestPages ? ' is-best' : '');
+          pc.textContent = pages;
+          cell.appendChild(pc);
+        }
+      }
+
+      row.appendChild(cell);
+    }
+
+    // BOOK BARS layer
+    const barsLayer = document.createElement('div');
+    barsLayer.className = 'book-bars-layer';
+
+    // Assign vertical slots so bars don't overlap
+    const slotMap = {}; // dateStr -> [bookIds]
+    const bookSlots = {}; // bookId -> slot index
+
+    // First pass: assign slots
+    monthBooks.forEach(b => {
+      const bStart = parseDate(b.start);
+      const bEnd = b.end ? parseDate(b.end) : parseDate(b.start);
+      for (let col = 0; col < 7; col++) {
+        const dayNum = weekDates[col];
+        if (dayNum < 1 || dayNum > days) continue;
+        const ds = toDateStr(new Date(currentYear, currentMonth, dayNum));
+        const dayDate = new Date(currentYear, currentMonth, dayNum);
+        if (dayDate >= bStart && dayDate <= bEnd) {
+          if (!slotMap[ds]) slotMap[ds] = [];
+          slotMap[ds].push(b.id);
+        }
+      }
+    });
+
+    // Assign slot per book for this week
+    const usedSlots = {};
+    monthBooks.forEach(b => {
+      const bStart = parseDate(b.start);
+      const bEnd = b.end ? parseDate(b.end) : parseDate(b.start);
+      let appearsInWeek = false;
+      for (let col = 0; col < 7; col++) {
+        const dayNum = weekDates[col];
+        if (dayNum < 1 || dayNum > days) continue;
+        const dayDate = new Date(currentYear, currentMonth, dayNum);
+        if (dayDate >= bStart && dayDate <= bEnd) { appearsInWeek = true; break; }
+      }
+      if (!appearsInWeek) return;
+
+      let slot = 0;
+      while (usedSlots[slot]) slot++;
+      usedSlots[slot] = true;
+      bookSlots[b.id] = slot;
+    });
+
+    const cellW = 100 / 7; // percent
+
+    monthBooks.forEach(b => {
+      if (bookSlots[b.id] === undefined) return;
+      const slot = bookSlots[b.id];
+      const topOffset = 22 + slot * 12; // px from top of row
+
+      const bStart = parseDate(b.start);
+      const bEnd = b.end ? parseDate(b.end) : parseDate(b.start);
+
+      // Find start and end columns within this week
+      let barStartCol = -1, barEndCol = -1;
+      for (let col = 0; col < 7; col++) {
+        const dayNum = weekDates[col];
+        if (dayNum < 1 || dayNum > days) continue;
+        const dayDate = new Date(currentYear, currentMonth, dayNum);
+        if (dayDate >= bStart && dayDate <= bEnd) {
+          if (barStartCol === -1) barStartCol = col;
+          barEndCol = col;
+        }
+      }
+
+      if (barStartCol === -1) return;
+
+      const bar = document.createElement('div');
+      bar.className = 'book-bar';
+      bar.style.background = b.color;
+      bar.style.left = `calc(${barStartCol * cellW}% + 3px)`;
+      bar.style.width = `calc(${(barEndCol - barStartCol + 1) * cellW}% - 6px)`;
+      bar.style.top = `${topOffset}px`;
+
+      // Pin book cover at start
+      const isWeekStart = barStartCol === 0;
+      const isBookStart = parseDate(b.start) >= new Date(currentYear, currentMonth, weekDates[0]);
+
+      if (isBookStart || isWeekStart) {
+        const pin = document.createElement('div');
+        if (b.coverUrl) {
+          pin.className = 'book-cover-pin';
+          const img = document.createElement('img');
+          img.src = b.coverUrl;
+          img.alt = b.title;
+          img.onerror = () => {
+            pin.classList.add('no-img');
+            pin.style.background = b.color;
+            img.remove();
+            pin.textContent = b.title.split(' ').slice(0,2).join(' ');
+          };
+          pin.appendChild(img);
+        } else {
+          pin.className = 'book-cover-pin no-img';
+          pin.style.background = b.color;
+          pin.textContent = b.title.split(' ').slice(0,2).join(' ');
+        }
+        pin.style.left = `calc(${barStartCol * cellW}% + ${cellW/2}%)`;
+        bar.appendChild(pin);
+      }
+
+      // Tooltip
+      bar.addEventListener('mouseenter', (e) => showTooltip(e, b));
+      bar.addEventListener('touchstart', (e) => showTooltip(e, b), {passive: true});
+      bar.addEventListener('mouseleave', hideTooltip);
+      bar.addEventListener('touchend', hideTooltip);
+
+      barsLayer.appendChild(bar);
+    });
+
+    row.appendChild(barsLayer);
+    grid.appendChild(row);
+  }
+}
+
+function renderBookList() {
+  const list = document.getElementById('bookList');
+  list.innerHTML = '';
+  const monthBooks = booksInMonth(currentYear, currentMonth);
+
+  monthBooks.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'book-card';
+
+    const cover = document.createElement('div');
+    cover.className = 'book-card-cover';
+    cover.style.background = b.color;
+
+    if (b.coverUrl) {
+      const img = document.createElement('img');
+      img.src = b.coverUrl;
+      img.alt = b.title;
+      img.onerror = () => {
+        img.remove();
+        cover.classList.add('no-img');
+        const titleWords = b.title.split(' ');
+        cover.innerHTML = `<span style="font-size:10px;font-weight:700;text-align:center;padding:4px;color:white;line-height:1.3">${titleWords.slice(0,4).join(' ')}</span>`;
+        appendBadge();
+      };
+      cover.appendChild(img);
+    } else {
+      cover.classList.add('no-img');
+      const titleWords = b.title.split(' ');
+      cover.innerHTML = `<span style="font-size:10px;font-weight:700;text-align:center;padding:4px;color:white;line-height:1.3">${titleWords.slice(0,4).join(' ')}</span>`;
+    }
+
+    function appendBadge() {
+      if (b.status === 'reading') {
+        const badge = document.createElement('div');
+        badge.className = 'status-badge';
+        badge.textContent = 'Reading';
+        cover.appendChild(badge);
+      } else if (b.status === 'dnf') {
+        const badge = document.createElement('div');
+        badge.className = 'status-badge';
+        badge.style.background = 'rgba(200,60,60,0.8)';
+        badge.textContent = 'DNF';
+        cover.appendChild(badge);
+      }
+    }
+    appendBadge();
+
+    const title = document.createElement('div');
+    title.className = 'book-card-title';
+    title.textContent = b.title;
+
+    const rating = document.createElement('div');
+    rating.className = 'book-card-rating';
+    rating.textContent = b.rating ? `★ ${b.rating}` : '—';
+
+    card.appendChild(cover);
+    card.appendChild(title);
+    card.appendChild(rating);
+    list.appendChild(card);
+
+    card.addEventListener('click', () => showTooltip(null, b, true));
+  });
+}
+
+// ─── TOOLTIP ────────────────────────────────────────────────────────────────
+
+function showTooltip(e, book, center = false) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('ttTitle').textContent = book.title;
+  document.getElementById('ttAuthor').textContent = book.author;
+  document.getElementById('ttPages').textContent = `${book.pages} pages`;
+  document.getElementById('ttRating').textContent = book.rating ? `★ ${book.rating}` : 'Reading';
+  document.getElementById('ttStatus').textContent = book.status === 'reading' ? 'In Progress' : book.status.toUpperCase();
+
+  const coverWrap = document.getElementById('ttCoverWrap');
+  const coverImg = document.getElementById('ttCover');
+  if (book.coverUrl) {
+    coverImg.src = book.coverUrl;
+    coverImg.onload = () => { coverWrap.style.display = 'block'; };
+    coverImg.onerror = () => { coverWrap.style.display = 'none'; };
+  } else {
+    coverWrap.style.display = 'none';
+  }
+
+  if (center) {
+    tt.style.left = '50%';
+    tt.style.transform = 'translateX(-50%)';
+    tt.style.bottom = '80px';
+    tt.style.top = 'auto';
+  } else if (e) {
+    const x = Math.min(e.clientX + 10, window.innerWidth - 220);
+    const y = Math.min(e.clientY + 10, window.innerHeight - 120);
+    tt.style.left = x + 'px';
+    tt.style.top = y + 'px';
+    tt.style.bottom = 'auto';
+    tt.style.transform = '';
+  }
+
+  tt.classList.add('visible');
+  if (center) setTimeout(hideTooltip, 2500);
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+document.addEventListener('mousemove', (e) => {
+  const tt = document.getElementById('tooltip');
+  if (tt.classList.contains('visible') && !tt.dataset.centered) {
+    const x = Math.min(e.clientX + 10, window.innerWidth - 220);
+    const y = Math.min(e.clientY + 10, window.innerHeight - 120);
+    tt.style.left = x + 'px';
+    tt.style.top = y + 'px';
+  }
+});
+
+// ─── MONTH NAV ──────────────────────────────────────────────────────────────
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+  render();
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────────────────
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  const today = toDateStr(new Date());
+  document.getElementById('inputStart').value = today;
+  document.getElementById('inputEnd').value = '';
+  document.getElementById('inputTitle').value = '';
+  document.getElementById('inputAuthor').value = '';
+  document.getElementById('inputPages').value = '';
+  document.getElementById('inputRating').value = '';
+  document.getElementById('inputStatus').value = 'read';
+  document.getElementById('inputCoverUrl').value = '';
+  document.getElementById('coverPreviewWrap').style.display = 'none';
+
+  // Live preview
+  document.getElementById('inputCoverUrl').oninput = function() {
+    const url = this.value.trim();
+    const wrap = document.getElementById('coverPreviewWrap');
+    const img = document.getElementById('coverPreview');
+    if (url) {
+      img.src = url;
+      img.onload = () => { wrap.style.display = 'block'; };
+      img.onerror = () => { wrap.style.display = 'none'; };
+    } else {
+      wrap.style.display = 'none';
+    }
+  };
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function addBook() {
+  const title = document.getElementById('inputTitle').value.trim();
+  const author = document.getElementById('inputAuthor').value.trim();
+  const start = document.getElementById('inputStart').value;
+  const end = document.getElementById('inputEnd').value;
+  const pages = parseInt(document.getElementById('inputPages').value) || 200;
+  const rating = parseFloat(document.getElementById('inputRating').value) || null;
+  const status = document.getElementById('inputStatus').value;
+  const coverUrl = document.getElementById('inputCoverUrl').value.trim();
+
+  if (!title || !start) { alert('Please fill in at least a title and start date.'); return; }
+
+  books.push({
+    id: nextId++, title, author, start,
+    end: end || null,
+    pages, rating, status, color: selectedColor,
+    coverUrl
+  });
+
+  closeModal();
+  render();
+}
+
+// ─── COLOR PICKER ───────────────────────────────────────────────────────────
+
+function initColorPicker() {
+  const picker = document.getElementById('colorPicker');
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (c === selectedColor ? ' selected' : '');
+    sw.style.background = c;
+    sw.onclick = () => {
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      selectedColor = c;
+    };
+    picker.appendChild(sw);
+  });
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+
+initColorPicker();
+render();
+</script>
+</body>
+</html>
