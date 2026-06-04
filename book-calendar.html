@@ -422,9 +422,10 @@ function pagesOnDate(dateStr, bookId) {
 // Books active during a given month (start <= monthEnd AND (end >= monthStart OR reading))
 function booksInMonth(y, m) {
   const ms = new Date(y, m, 1), me = new Date(y, m+1, 0);
+  const todayDate = parseDate(toDateStr(new Date()));
   return books.filter(b => {
     const s = parseDate(b.start);
-    const e = b.end ? parseDate(b.end) : me;
+    const e = b.end ? parseDate(b.end) : todayDate;
     return s && s <= me && e >= ms;
   });
 }
@@ -532,9 +533,10 @@ function renderCalendar() {
     barsLayer.className = 'book-bars-layer';
     const usedSlots = {}, bookSlots = {};
 
+    const todayDate = parseDate(today);
     monthBooks.forEach(b => {
       const bs = parseDate(b.start);
-      const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
+      const be = b.end ? parseDate(b.end) : todayDate;
       let inWeek = false;
       for (let col = 0; col < 7; col++) {
         const dn = weekDates[col];
@@ -554,7 +556,7 @@ function renderCalendar() {
       const slot = bookSlots[b.id];
       const topOffset = 20 + slot * 13;
       const bs = parseDate(b.start);
-      const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
+      const be = b.end ? parseDate(b.end) : todayDate;
       let barStartCol = -1, barEndCol = -1;
       for (let col = 0; col < 7; col++) {
         const dn = weekDates[col];
