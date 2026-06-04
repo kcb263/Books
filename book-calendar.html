@@ -232,18 +232,19 @@
   </div>
 </div>
 
-<!-- LOG PAGES MODAL: enter pages for a specific book+day -->
+<!-- LOG PAGES MODAL: enter ending page number for a specific book+day -->
 <div class="modal-overlay" id="logModalOverlay" onclick="handleOverlayClick(event,'logModalOverlay')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="logModalTitle">Log Pages</div>
+    <div class="modal-title" id="logModalTitle">Log Reading</div>
     <div class="modal-subtitle" id="logModalSubtitle"></div>
     <input type="hidden" id="logBookId">
     <input type="hidden" id="logDate">
+    <input type="hidden" id="logPrevPage">
     <div class="form-field">
-      <label class="form-label">Pages Read Today</label>
-      <input type="number" class="form-input" id="logPages" placeholder="e.g. 45" min="0">
-      <div class="form-hint">Enter 0 to clear this day's log entry.</div>
+      <label class="form-label">Ended on page</label>
+      <input type="number" class="form-input" id="logEndPage" placeholder="e.g. 147" min="1" style="font-size:22px;text-align:center;padding:14px;">
+      <div class="form-hint" id="logHint"></div>
     </div>
     <button class="btn-submit" onclick="submitLog()">Save</button>
     <button class="btn-secondary" onclick="closeModal('logModalOverlay')">Cancel</button>
@@ -717,23 +718,56 @@ function openLogModal(book, dateStr) {
     `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   document.getElementById('logBookId').value = book.id;
   document.getElementById('logDate').value = dateStr;
-  const existing = pagesOnDate(dateStr, book.id);
-  document.getElementById('logPages').value = existing > 0 ? existing : '';
+
+  // Find the most recent ending page for this book before this date
+  const prevPage = getLastPageForBook(book.id, dateStr);
+  document.getElementById('logPrevPage').value = prevPage;
+
+  // If there's already a log entry for this exact date, pre-fill with that session's end page
+  const existingPages = pagesOnDate(dateStr, book.id);
+  const existingEndPage = existingPages > 0 ? prevPage + existingPages : '';
+  document.getElementById('logEndPage').value = existingEndPage || '';
+
+  // Build the hint text
+  const hint = document.getElementById('logHint');
+  if (prevPage > 0) {
+    hint.textContent = `Last logged: page ${prevPage}. The app will calculate pages read automatically.`;
+  } else {
+    hint.textContent = `First session for this book. Enter the page you stopped on.`;
+  }
+
   document.getElementById('logModalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('logPages').focus(), 350);
+  setTimeout(() => document.getElementById('logEndPage').focus(), 350);
+}
+
+// Find the ending page for a book as of the most recent log entry before a given date
+function getLastPageForBook(bookId, beforeDateStr) {
+  // Collect all logged dates for this book that are before the given date
+  const entries = Object.entries(readingLog)
+    .filter(([date, dayLog]) => date < beforeDateStr && (dayLog[bookId] || 0) > 0)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  // Walk entries in order, accumulating pages to get the ending page
+  let page = 0;
+  entries.forEach(([, dayLog]) => { page += dayLog[bookId] || 0; });
+  return page;
 }
 
 function submitLog() {
   const bookId = parseInt(document.getElementById('logBookId').value);
   const dateStr = document.getElementById('logDate').value;
-  const pages = parseInt(document.getElementById('logPages').value) || 0;
+  const endPage = parseInt(document.getElementById('logEndPage').value) || 0;
+  const prevPage = parseInt(document.getElementById('logPrevPage').value) || 0;
 
   if (!readingLog[dateStr]) readingLog[dateStr] = {};
-  if (pages <= 0) {
+
+  if (endPage <= 0 || endPage <= prevPage) {
+    // Clear this entry if invalid or no progress
     delete readingLog[dateStr][bookId];
     if (Object.keys(readingLog[dateStr]).length === 0) delete readingLog[dateStr];
   } else {
-    readingLog[dateStr][bookId] = pages;
+    const pagesRead = endPage - prevPage;
+    readingLog[dateStr][bookId] = pagesRead;
   }
 
   closeModal('logModalOverlay');
@@ -940,7 +974,11 @@ function handleOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
   document.addEventListener('touchstart', e => {
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
-    // Check if touch started inside the calendar grid by coordinates
+    startedInCalendar = false;
+
+    // Bail immediately if touch starts inside an open modal
+    if (document.querySelector('.modal-overlay.open')) return;
+
     const grid = document.getElementById('calendarGrid');
     if (grid) {
       const rect = grid.getBoundingClientRect();
@@ -953,11 +991,11 @@ function handleOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
   document.addEventListener('touchend', e => {
     if (!startedInCalendar) return;
-    // Don't fire if a modal is open
     if (document.querySelector('.modal-overlay.open')) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+    // Require a clear, intentional horizontal swipe: 60px min, 2x more horizontal than vertical
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
       changeMonth(dx < 0 ? 1 : -1);
     }
   }, { passive: true });
