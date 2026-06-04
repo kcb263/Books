@@ -933,7 +933,27 @@ function deleteBook() {
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function handleOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// ── SWIPE TO CHANGE MONTH ─────────────────────────────────────────────────
+(function() {
+  let startX = 0, startY = 0;
+  const grid = document.getElementById('calendarGrid');
+  // Use the whole page so partial swipes on bars still register
+  document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // Only treat as a horizontal swipe if it's clearly more horizontal than vertical
+    // and long enough (>50px) to avoid accidental triggers on taps
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      // Make sure the touch started somewhere on the calendar grid area
+      const target = e.target.closest('.weeks, .week-row, .day-cell, .book-bar, .book-bars-layer');
+      if (target) changeMonth(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+})();
 loadData();
 render();
 </script>
