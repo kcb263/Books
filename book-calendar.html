@@ -22,17 +22,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; transition: background 0.25s, color 0.25s; }
 
-  /* ── STICKY HEADER BLOCK: header + stats + day-names all together ── */
-  .sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    transition: background 0.25s, border-color 0.25s;
-  }
-
-  /* header */
+  /* ── STICKY TOP: title + stats + day names ── */
+  .sticky-top { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--border); transition: background 0.25s, border-color 0.25s; }
   .header { padding: 14px 16px 10px; }
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .app-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
@@ -49,14 +40,12 @@
   .nav-btn { width: 32px; height: 32px; border-radius: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s; }
   .nav-btn:hover { background: var(--surface2); color: var(--text); }
 
-  /* stats */
   .stats-bar { display: flex; border-top: 1px solid var(--border); }
   .stat-item { flex: 1; padding: 8px 4px; text-align: center; border-right: 1px solid var(--border); }
   .stat-item:last-child { border-right: none; }
   .stat-value { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; color: var(--accent); display: block; }
   .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); margin-top: 1px; display: block; }
 
-  /* day-of-week header — lives inside .sticky-top so it never floats separately */
   .day-headers { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--border); }
   .day-header { text-align: center; padding: 7px 0 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
   .day-header.weekend { color: var(--text-muted); }
@@ -65,15 +54,16 @@
   .weeks { display: flex; flex-direction: column; }
   .week-row { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); position: relative; min-height: 78px; }
   .week-row:last-child { border-bottom: none; }
-  .day-cell { border-right: 1px solid var(--border); padding: 5px 4px 4px; position: relative; min-height: 78px; }
+  .day-cell { border-right: 1px solid var(--border); padding: 5px 4px 4px; position: relative; min-height: 78px; cursor: pointer; }
   .day-cell:last-child { border-right: none; }
-  .day-cell.other-month { opacity: 0.28; }
+  .day-cell.other-month { opacity: 0.28; cursor: default; }
+  .day-cell:not(.other-month):hover { background: var(--surface2); }
   .day-cell.today .day-num { background: var(--accent); color: var(--bg); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2px; }
   .day-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: center; margin-bottom: 2px; line-height: 1; }
 
-  /* page count — only shown when pages > 0, no trophy icon on every cell */
-  .page-count { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text-dim); text-align: center; position: absolute; bottom: 4px; left: 0; right: 0; }
-  .page-count.is-best { color: var(--accent); font-weight: 600; }
+  /* page count at bottom of day cell — only shown when logged pages > 0 */
+  .page-count { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text-dim); text-align: center; position: absolute; bottom: 4px; left: 0; right: 0; line-height: 1; }
+  .page-count.is-best { color: var(--accent); font-weight: 700; }
 
   /* ── BOOK BARS ── */
   .book-bars-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 5; }
@@ -84,7 +74,7 @@
   .book-cover-pin.no-img { display: flex; align-items: center; justify-content: center; font-size: 6px; text-align: center; padding: 2px; font-weight: 600; color: white; line-height: 1.1; }
 
   /* ── TOOLTIP ── */
-  .tooltip { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; max-width: 220px; z-index: 200; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 0.15s, transform 0.15s; box-shadow: 0 8px 32px var(--shadow); }
+  .tooltip { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; max-width: 230px; z-index: 200; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 0.15s, transform 0.15s; box-shadow: 0 8px 32px var(--shadow); }
   .tooltip.visible { opacity: 1; transform: translateY(0); }
   .tooltip-title { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 700; margin-bottom: 2px; color: var(--text); }
   .tooltip-author { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
@@ -97,6 +87,7 @@
   .section-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 400; font-style: italic; color: var(--text-muted); padding: 14px 16px 8px; border-top: 1px solid var(--border); }
   .book-list { display: flex; gap: 12px; padding: 0 16px 16px; overflow-x: auto; scrollbar-width: none; }
   .book-list::-webkit-scrollbar { display: none; }
+  .empty-shelf { padding: 12px 16px 20px; font-size: 13px; color: var(--text-dim); font-style: italic; }
   .book-card { flex-shrink: 0; width: 80px; cursor: pointer; transition: transform 0.15s; }
   .book-card:hover { transform: translateY(-3px); }
   .book-card-cover { width: 80px; height: 112px; border-radius: 4px; overflow: hidden; margin-bottom: 6px; position: relative; box-shadow: 3px 3px 12px var(--shadow); }
@@ -109,8 +100,6 @@
   /* ── LEGEND ── */
   .legend { padding: 10px 16px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--border); }
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-dim); }
-  .legend-dot { width: 10px; height: 6px; border-radius: 3px; background: var(--accent); display: inline-block; }
-  .legend-dot.best { background: var(--accent); border: 1.5px solid var(--accent); }
 
   /* ── MODALS ── */
   .modal-overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -118,11 +107,13 @@
   .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 20px 40px; width: 100%; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); border-top: 1px solid var(--border); max-height: 92vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--modal-scroll) transparent; }
   .modal-overlay.open .modal { transform: translateY(0); }
   .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
-  .modal-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 4px; color: var(--text); display: flex; align-items: center; justify-content: space-between; }
+  .modal-subtitle { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
   .btn-delete { font-size: 11px; font-family: 'DM Sans', sans-serif; color: #c85c5c; background: none; border: 1px solid #c85c5c; border-radius: 8px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
   .btn-delete:hover { background: #c85c5c; color: white; }
   .form-field { margin-bottom: 12px; }
   .form-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .form-hint { font-size: 10px; color: var(--text-dim); margin-top: 4px; font-style: italic; }
   .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s, background 0.25s; }
   .form-input:focus { border-color: var(--accent); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -130,9 +121,27 @@
   .form-textarea:focus { border-color: var(--accent); }
   .btn-submit { width: 100%; padding: 14px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: opacity 0.15s; }
   .btn-submit:hover { opacity: 0.85; }
+  .btn-secondary { width: 100%; padding: 12px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; margin-top: 8px; transition: all 0.15s; }
+  .btn-secondary:hover { background: var(--surface2); }
   .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
   .color-swatch { width: 28px; height: 28px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s, border-color 0.1s; }
   .color-swatch.selected { border-color: var(--swatch-border); transform: scale(1.15); }
+
+  /* reading log list inside edit modal */
+  .log-list { margin-bottom: 12px; }
+  .log-entry { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+  .log-entry-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .log-entry-pages { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 600; }
+  .log-entry-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0 4px; line-height: 1; }
+  .log-entry-del:hover { color: #c85c5c; }
+  .log-empty { font-size: 11px; color: var(--text-dim); font-style: italic; padding: 4px 0 8px; }
+
+  /* day-tap modal */
+  .day-book-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface2); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; }
+  .day-book-item:hover { background: var(--border); }
+  .day-book-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .day-book-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .day-book-logged { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
 
   @media (min-width: 480px) {
     .day-cell, .week-row { min-height: 88px; }
@@ -142,7 +151,7 @@
 </head>
 <body>
 
-<!-- SINGLE STICKY BLOCK: title + stats + day headers -->
+<!-- STICKY TOP -->
 <div class="sticky-top">
   <div class="header">
     <div class="header-top">
@@ -152,7 +161,7 @@
           <span class="theme-icon-dark">☀️</span>
           <span class="theme-icon-light">🌙</span>
         </button>
-        <button class="btn-icon" onclick="saveToFile()" title="Save / Download">💾</button>
+        <button class="btn-icon" onclick="saveToFile()" title="Save">💾</button>
         <button class="btn-icon" onclick="openAddModal()" title="Add Book">+</button>
       </div>
     </div>
@@ -165,14 +174,12 @@
       <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
     </div>
   </div>
-
   <div class="stats-bar">
     <div class="stat-item"><span class="stat-value" id="statBooks">—</span><span class="stat-label">Books</span></div>
     <div class="stat-item"><span class="stat-value" id="statPages">—</span><span class="stat-label">Pages</span></div>
     <div class="stat-item"><span class="stat-value" id="statAvgDay">—</span><span class="stat-label">Avg/Day</span></div>
     <div class="stat-item"><span class="stat-value" id="statBest">—</span><span class="stat-label">Best Day</span></div>
   </div>
-
   <div class="day-headers">
     <div class="day-header">Mon</div>
     <div class="day-header">Tue</div>
@@ -184,16 +191,15 @@
   </div>
 </div>
 
-<!-- CALENDAR GRID (no overflow wrapper needed now) -->
+<!-- CALENDAR -->
 <div class="weeks" id="calendarGrid"></div>
 
 <!-- BOOK SHELF -->
 <div class="section-title">Books this month</div>
-<div class="book-list" id="bookList"></div>
+<div id="bookShelf"></div>
+
 <div class="legend">
-  <div class="legend-item"><span class="legend-dot"></span> Pages read per day</div>
-  <div class="legend-item" style="color:var(--accent);"><span class="legend-dot best"></span> Best reading day</div>
-  <div class="legend-item" style="margin-left:auto;font-size:9px;color:var(--text-dim);">Tap a book to edit</div>
+  <div class="legend-item" style="color:var(--text-muted);">Tap a day to log pages · Tap a book to edit</div>
 </div>
 
 <!-- TOOLTIP -->
@@ -215,7 +221,36 @@
   </div>
 </div>
 
-<!-- ADD MODAL -->
+<!-- DAY TAP MODAL: pick which book to log for -->
+<div class="modal-overlay" id="dayModalOverlay" onclick="handleOverlayClick(event,'dayModalOverlay')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="dayModalTitle">Log Pages</div>
+    <div class="modal-subtitle" id="dayModalSubtitle"></div>
+    <div id="dayBookList"></div>
+    <button class="btn-secondary" onclick="closeModal('dayModalOverlay')">Cancel</button>
+  </div>
+</div>
+
+<!-- LOG PAGES MODAL: enter pages for a specific book+day -->
+<div class="modal-overlay" id="logModalOverlay" onclick="handleOverlayClick(event,'logModalOverlay')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="logModalTitle">Log Pages</div>
+    <div class="modal-subtitle" id="logModalSubtitle"></div>
+    <input type="hidden" id="logBookId">
+    <input type="hidden" id="logDate">
+    <div class="form-field">
+      <label class="form-label">Pages Read Today</label>
+      <input type="number" class="form-input" id="logPages" placeholder="e.g. 45" min="0">
+      <div class="form-hint">Enter 0 to clear this day's log entry.</div>
+    </div>
+    <button class="btn-submit" onclick="submitLog()">Save</button>
+    <button class="btn-secondary" onclick="closeModal('logModalOverlay')">Cancel</button>
+  </div>
+</div>
+
+<!-- ADD BOOK MODAL -->
 <div class="modal-overlay" id="addModalOverlay" onclick="handleOverlayClick(event,'addModalOverlay')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -226,23 +261,27 @@
       <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="addStart"></div>
       <div class="form-field"><label class="form-label">End Date</label><input type="date" class="form-input" id="addEnd"></div>
     </div>
+    <div class="form-field">
+      <label class="form-label">Total Pages</label>
+      <input type="number" class="form-input" id="addPages" placeholder="320">
+      <div class="form-hint">Total pages in the book — used for the shelf display only.</div>
+    </div>
     <div class="form-row">
-      <div class="form-field"><label class="form-label">Pages</label><input type="number" class="form-input" id="addPages" placeholder="320"></div>
       <div class="form-field"><label class="form-label">Rating (0–5)</label><input type="number" class="form-input" id="addRating" placeholder="4.5" step="0.25" min="0" max="5"></div>
+      <div class="form-field"><label class="form-label">Status</label>
+        <select class="form-input" id="addStatus">
+          <option value="reading">Currently Reading</option>
+          <option value="read">Finished</option>
+          <option value="dnf">DNF</option>
+        </select>
+      </div>
     </div>
-    <div class="form-field"><label class="form-label">Status</label>
-      <select class="form-input" id="addStatus">
-        <option value="read">Read</option>
-        <option value="reading">Currently Reading</option>
-        <option value="dnf">DNF</option>
-      </select>
-    </div>
-    <div class="form-field"><label class="form-label">One-Line Recap</label><textarea class="form-textarea" id="addRecap" placeholder="Your quick take on the book…"></textarea></div>
+    <div class="form-field"><label class="form-label">One-Line Recap</label><textarea class="form-textarea" id="addRecap" placeholder="Your quick take…"></textarea></div>
     <div class="form-field">
       <label class="form-label">Cover Image URL</label>
       <input type="url" class="form-input" id="addCoverUrl" placeholder="https://… (optional)">
       <div id="addCoverPreviewWrap" style="margin-top:8px;display:none;text-align:center;">
-        <img id="addCoverPreview" src="" alt="" style="height:80px;border-radius:4px;box-shadow:0 2px 8px var(--shadow);object-fit:cover;">
+        <img id="addCoverPreview" src="" alt="" style="height:80px;border-radius:4px;object-fit:cover;box-shadow:0 2px 8px var(--shadow);">
       </div>
     </div>
     <div class="form-field"><label class="form-label">Bar Color</label><div class="color-picker" id="addColorPicker"></div></div>
@@ -250,7 +289,7 @@
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- EDIT BOOK MODAL -->
 <div class="modal-overlay" id="editModalOverlay" onclick="handleOverlayClick(event,'editModalOverlay')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -265,87 +304,86 @@
       <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="editStart"></div>
       <div class="form-field"><label class="form-label">End Date</label><input type="date" class="form-input" id="editEnd"></div>
     </div>
+    <div class="form-field"><label class="form-label">Total Pages</label><input type="number" class="form-input" id="editPages"></div>
     <div class="form-row">
-      <div class="form-field"><label class="form-label">Pages</label><input type="number" class="form-input" id="editPages"></div>
       <div class="form-field"><label class="form-label">Rating (0–5)</label><input type="number" class="form-input" id="editRating" step="0.25" min="0" max="5"></div>
+      <div class="form-field"><label class="form-label">Status</label>
+        <select class="form-input" id="editStatus">
+          <option value="reading">Currently Reading</option>
+          <option value="read">Finished</option>
+          <option value="dnf">DNF</option>
+        </select>
+      </div>
     </div>
-    <div class="form-field"><label class="form-label">Status</label>
-      <select class="form-input" id="editStatus">
-        <option value="read">Read</option>
-        <option value="reading">Currently Reading</option>
-        <option value="dnf">DNF</option>
-      </select>
-    </div>
-    <div class="form-field"><label class="form-label">One-Line Recap</label><textarea class="form-textarea" id="editRecap" placeholder="Your quick take on the book…"></textarea></div>
+    <div class="form-field"><label class="form-label">One-Line Recap</label><textarea class="form-textarea" id="editRecap" placeholder="Your quick take…"></textarea></div>
     <div class="form-field">
       <label class="form-label">Cover Image URL</label>
       <input type="url" class="form-input" id="editCoverUrl">
       <div id="editCoverPreviewWrap" style="margin-top:8px;display:none;text-align:center;">
-        <img id="editCoverPreview" src="" alt="" style="height:80px;border-radius:4px;box-shadow:0 2px 8px var(--shadow);object-fit:cover;">
+        <img id="editCoverPreview" src="" alt="" style="height:80px;border-radius:4px;object-fit:cover;box-shadow:0 2px 8px var(--shadow);">
       </div>
     </div>
     <div class="form-field"><label class="form-label">Bar Color</label><div class="color-picker" id="editColorPicker"></div></div>
+
+    <!-- Reading log for this book -->
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;color:var(--text);margin-bottom:10px;">Reading Log</div>
+      <div class="log-list" id="editLogList"></div>
+    </div>
+
     <button class="btn-submit" onclick="submitEditBook()">Save Changes</button>
   </div>
 </div>
 
 <script>
+// ── CONSTANTS ────────────────────────────────────────────────────────────
 const COLORS = ['#c85c5c','#d4914a','#c8bf3c','#4caf80','#5b9bd5','#7c6fb0','#b85d8a','#8888aa','#555566','#4e9e8e','#a86232','#6c9e5a'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const STORAGE_KEY = 'readingCalendar_v3';
+const STORAGE_KEY = 'readingCalendar_v4';
 
+// ── STATE ────────────────────────────────────────────────────────────────
+let books = [];          // [{id, title, author, start, end, pages, rating, status, recap, color, coverUrl}]
+let readingLog = {};     // { "YYYY-MM-DD": { bookId: pagesRead, ... } }
+let nextId = 1;
+let currentYear, currentMonth;
 let addSelectedColor = COLORS[0];
 let editSelectedColor = COLORS[0];
-let currentYear = 2025;
-let currentMonth = 4;
-
-const DEFAULT_BOOKS = [
-  { id:1,  title:"The Thursday Murder Club",       author:"Richard Osman",          start:"2025-05-01", end:"2025-05-02", pages:331, rating:4.0,  status:"read",    color:"#c85c5c", coverUrl:"https://covers.openlibrary.org/b/id/10519680-L.jpg", recap:"A delightful, witty mystery — older heroes done right." },
-  { id:2,  title:"Careless People",                author:"Sarah Wynn-Williams",    start:"2025-05-04", end:"2025-05-09", pages:352, rating:4.0,  status:"read",    color:"#8888aa", coverUrl:"https://covers.openlibrary.org/b/id/14805775-L.jpg", recap:"Jaw-dropping insider account; equal parts fascinating and infuriating." },
-  { id:3,  title:"This Inevitable Ruin",           author:"Matt Dinniman",          start:"2025-05-11", end:"2025-05-11", pages:248, rating:4.5,  status:"read",    color:"#4caf80", coverUrl:"", recap:"Dungeon Crawler Carl keeps delivering — unputdownable." },
-  { id:4,  title:"Dead Wake",                      author:"Erik Larson",            start:"2025-05-12", end:"2025-05-15", pages:430, rating:3.5,  status:"read",    color:"#555566", coverUrl:"https://covers.openlibrary.org/b/id/8739161-L.jpg", recap:"Meticulous narrative history; drags slightly in the middle." },
-  { id:5,  title:"Cat's Cradle",                   author:"Kurt Vonnegut",          start:"2025-05-15", end:"2025-05-16", pages:306, rating:4.25, status:"read",    color:"#5b9bd5", coverUrl:"https://covers.openlibrary.org/b/id/8380812-L.jpg", recap:"Darkly funny and eerily prescient. Ice-nine stays with you." },
-  { id:6,  title:"God Bless You, Mr. Rosewater",  author:"Kurt Vonnegut",          start:"2025-05-16", end:"2025-05-17", pages:234, rating:4.0,  status:"read",    color:"#7c6fb0", coverUrl:"https://covers.openlibrary.org/b/id/8380928-L.jpg", recap:"Underrated Vonnegut — surprising compassion beneath the satire." },
-  { id:7,  title:"A Parade of Horrors",            author:"Matt Dinniman",          start:"2025-05-25", end:"2025-05-29", pages:491, rating:4.25, status:"read",    color:"#d4914a", coverUrl:"", recap:"" },
-  { id:8,  title:"The Simplest Baby Book",         author:"Various",                start:"2025-05-29", end:"2025-05-31", pages:267, rating:4.0,  status:"read",    color:"#c8bf3c", coverUrl:"", recap:"" },
-  { id:9,  title:"Arsenal: The Making of a Club",  author:"Various",               start:"2025-05-30", end:null,         pages:320, rating:null, status:"reading", color:"#c85c5c", coverUrl:"", recap:"" },
-  { id:10, title:"One Hundred Years of Solitude",  author:"Gabriel García Márquez",start:"2025-05-31", end:null,         pages:448, rating:null, status:"reading", color:"#8888aa", coverUrl:"https://covers.openlibrary.org/b/id/8231432-L.jpg", recap:"" }
-];
-
-let books = [];
-let nextId = 11;
 
 // ── PERSISTENCE ──────────────────────────────────────────────────────────
-
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      books = s.books || DEFAULT_BOOKS;
-      nextId = s.nextId || (Math.max(...books.map(b=>b.id)) + 1);
-      currentYear = s.currentYear || 2025;
-      currentMonth = s.currentMonth != null ? s.currentMonth : 4;
+      books = s.books || [];
+      readingLog = s.readingLog || {};
+      nextId = s.nextId || 1;
+      currentYear = s.currentYear || new Date().getFullYear();
+      currentMonth = s.currentMonth != null ? s.currentMonth : new Date().getMonth();
       document.documentElement.setAttribute('data-theme', s.theme || 'dark');
     } else {
-      books = JSON.parse(JSON.stringify(DEFAULT_BOOKS));
-      nextId = 11;
+      books = [];
+      readingLog = {};
+      nextId = 1;
+      currentYear = new Date().getFullYear();
+      currentMonth = new Date().getMonth();
     }
   } catch(e) {
-    books = JSON.parse(JSON.stringify(DEFAULT_BOOKS));
-    nextId = 11;
+    books = []; readingLog = {}; nextId = 1;
+    currentYear = new Date().getFullYear();
+    currentMonth = new Date().getMonth();
   }
 }
 
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    books, nextId, currentYear, currentMonth,
+    books, readingLog, nextId, currentYear, currentMonth,
     theme: document.documentElement.getAttribute('data-theme')
   }));
 }
 
 function saveToFile() {
-  const blob = new Blob([document.documentElement.outerHTML], { type:'text/html' });
+  const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'book-calendar.html';
@@ -360,7 +398,6 @@ function toggleTheme() {
 }
 
 // ── UTILS ────────────────────────────────────────────────────────────────
-
 function parseDate(str) {
   if (!str) return null;
   const [y,m,d] = str.split('-').map(Number);
@@ -374,46 +411,52 @@ function getFirstDayOfMonth(y, m) {
   const d = new Date(y, m, 1).getDay();
   return d === 0 ? 6 : d - 1;
 }
-function pagesForDay(book, dateStr) {
-  const start = parseDate(book.start);
-  const end = book.end ? parseDate(book.end) : parseDate(book.start);
-  const target = parseDate(dateStr);
-  if (!start || target < start || target > end) return 0;
-  const days = Math.round((end - start) / 86400000) + 1;
-  return Math.round(book.pages / days);
+
+// Pages logged for a specific date across all books (or for one book)
+function pagesOnDate(dateStr, bookId) {
+  const dayLog = readingLog[dateStr] || {};
+  if (bookId !== undefined) return dayLog[bookId] || 0;
+  return Object.values(dayLog).reduce((a, b) => a + b, 0);
 }
+
+// Books active during a given month (start <= monthEnd AND (end >= monthStart OR reading))
 function booksInMonth(y, m) {
   const ms = new Date(y, m, 1), me = new Date(y, m+1, 0);
   return books.filter(b => {
     const s = parseDate(b.start);
-    const e = b.end ? parseDate(b.end) : (b.status==='reading' ? me : s);
-    return s <= me && e >= ms;
+    const e = b.end ? parseDate(b.end) : me;
+    return s && s <= me && e >= ms;
   });
 }
 
-// ── RENDER ───────────────────────────────────────────────────────────────
+// Total pages logged this month
+function monthStats(y, m) {
+  const days = getDaysInMonth(y, m);
+  let total = 0, best = 0, daysRead = 0;
+  for (let d = 1; d <= days; d++) {
+    const ds = toDateStr(new Date(y, m, d));
+    const p = pagesOnDate(ds);
+    if (p > 0) { total += p; daysRead++; if (p > best) best = p; }
+  }
+  return { total, best, daysRead };
+}
 
+// ── RENDER ────────────────────────────────────────────────────────────────
 function render() {
   document.getElementById('monthLabel').textContent = MONTH_NAMES[currentMonth];
   document.getElementById('yearLabel').textContent = currentYear;
   renderStats();
   renderCalendar();
-  renderBookList();
+  renderBookShelf();
 }
 
 function renderStats() {
   const mb = booksInMonth(currentYear, currentMonth);
-  const days = getDaysInMonth(currentYear, currentMonth);
-  let total = 0, best = 0;
-  for (let d = 1; d <= days; d++) {
-    const ds = toDateStr(new Date(currentYear, currentMonth, d));
-    let dp = 0; mb.forEach(b => { dp += pagesForDay(b, ds); });
-    total += dp; if (dp > best) best = dp;
-  }
+  const { total, best, daysRead } = monthStats(currentYear, currentMonth);
   document.getElementById('statBooks').textContent = mb.length;
-  document.getElementById('statPages').textContent = total.toLocaleString();
-  document.getElementById('statAvgDay').textContent = total > 0 ? Math.round(total / days) : 0;
-  document.getElementById('statBest').textContent = best;
+  document.getElementById('statPages').textContent = total > 0 ? total.toLocaleString() : '—';
+  document.getElementById('statAvgDay').textContent = daysRead > 0 ? Math.round(total / daysRead) : '—';
+  document.getElementById('statBest').textContent = best > 0 ? best : '—';
 }
 
 function renderCalendar() {
@@ -424,14 +467,14 @@ function renderCalendar() {
   const monthBooks = booksInMonth(currentYear, currentMonth);
   const today = toDateStr(new Date());
 
-  // Build per-day page totals
+  // Build per-day actual logged pages and find true best day
   const dayPageMap = {};
   let bestPages = 0;
   for (let d = 1; d <= days; d++) {
     const ds = toDateStr(new Date(currentYear, currentMonth, d));
-    let t = 0; monthBooks.forEach(b => { t += pagesForDay(b, ds); });
-    dayPageMap[ds] = t;
-    if (t > bestPages) bestPages = t;
+    const p = pagesOnDate(ds);
+    dayPageMap[ds] = p;
+    if (p > bestPages) bestPages = p;
   }
 
   const totalCells = Math.ceil((firstDay + days) / 7) * 7;
@@ -452,30 +495,34 @@ function renderCalendar() {
         const on = document.createElement('div');
         on.className = 'day-num';
         if (dayNum < 1) {
-          const pd = getDaysInMonth(currentYear, currentMonth === 0 ? 11 : currentMonth - 1);
+          const pd = getDaysInMonth(currentYear, currentMonth === 0 ? 11 : currentMonth-1);
           on.textContent = pd + dayNum;
         } else { on.textContent = dayNum - days; }
         cell.appendChild(on);
       } else {
         const ds = toDateStr(new Date(currentYear, currentMonth, dayNum));
         if (ds === today) cell.classList.add('today');
+
         const numEl = document.createElement('div');
         numEl.className = 'day-num';
         numEl.textContent = dayNum;
         cell.appendChild(numEl);
 
+        // Show logged pages — only if actually logged
         const pg = dayPageMap[ds];
-        // Only show page count if this day has pages AND there's something meaningful to show
-        // (suppress if every reading day has the same count — e.g. a single book spanning all days)
         if (pg > 0) {
           const pc = document.createElement('div');
-          // Only mark as best if this day is uniquely the best (not all tied)
-          const isBest = pg === bestPages && pg > 0 &&
-            Object.values(dayPageMap).filter(v => v === bestPages).length < days;
+          const isBest = pg === bestPages;
           pc.className = 'page-count' + (isBest ? ' is-best' : '');
           pc.textContent = isBest ? '★ ' + pg : pg;
           cell.appendChild(pc);
         }
+
+        // Tap day to log pages
+        cell.addEventListener('click', e => {
+          if (e.target.closest('.book-bar')) return;
+          openDayModal(ds, dayNum);
+        });
       }
       row.appendChild(cell);
     }
@@ -483,17 +530,16 @@ function renderCalendar() {
     // Book bars
     const barsLayer = document.createElement('div');
     barsLayer.className = 'book-bars-layer';
-
     const usedSlots = {}, bookSlots = {};
+
     monthBooks.forEach(b => {
       const bs = parseDate(b.start);
-      const be = b.end ? parseDate(b.end) : parseDate(b.start);
+      const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
       let inWeek = false;
       for (let col = 0; col < 7; col++) {
         const dn = weekDates[col];
         if (dn < 1 || dn > days) continue;
-        const dd = new Date(currentYear, currentMonth, dn);
-        if (dd >= bs && dd <= be) { inWeek = true; break; }
+        if (new Date(currentYear, currentMonth, dn) >= bs && new Date(currentYear, currentMonth, dn) <= be) { inWeek = true; break; }
       }
       if (!inWeek) return;
       let slot = 0;
@@ -503,13 +549,12 @@ function renderCalendar() {
     });
 
     const cellW = 100 / 7;
-
     monthBooks.forEach(b => {
       if (bookSlots[b.id] === undefined) return;
       const slot = bookSlots[b.id];
       const topOffset = 20 + slot * 13;
       const bs = parseDate(b.start);
-      const be = b.end ? parseDate(b.end) : parseDate(b.start);
+      const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
       let barStartCol = -1, barEndCol = -1;
       for (let col = 0; col < 7; col++) {
         const dn = weekDates[col];
@@ -529,11 +574,10 @@ function renderCalendar() {
       bar.style.width = `calc(${(barEndCol - barStartCol + 1) * cellW}% - 6px)`;
       bar.style.top = `${topOffset}px`;
 
-      // Cover pin at book start or week start
+      // Cover pin
       const firstValidDay = weekDates.find(d => d >= 1 && d <= days) || 1;
       const weekFirstDate = new Date(currentYear, currentMonth, firstValidDay);
-      const isBookStart = bs >= weekFirstDate || barStartCol === 0;
-      if (isBookStart) {
+      if (bs >= weekFirstDate || barStartCol === 0) {
         const pin = document.createElement('div');
         if (b.coverUrl) {
           pin.className = 'book-cover-pin';
@@ -546,14 +590,14 @@ function renderCalendar() {
           pin.style.background = b.color;
           pin.textContent = b.title.split(' ').slice(0,2).join(' ');
         }
-        pin.style.left = `calc(${barStartCol * cellW}% + ${cellW / 2}%)`;
+        pin.style.left = `calc(${barStartCol * cellW}% + ${cellW/2}%)`;
         bar.appendChild(pin);
       }
 
       bar.addEventListener('mouseenter', e => showTooltip(e, b));
       bar.addEventListener('touchstart', e => { e.stopPropagation(); showTooltip(e, b); }, {passive:true});
       bar.addEventListener('mouseleave', hideTooltip);
-      bar.addEventListener('click', () => openEditModal(b));
+      bar.addEventListener('click', e => { e.stopPropagation(); openEditModal(b); });
       barsLayer.appendChild(bar);
     });
 
@@ -562,10 +606,17 @@ function renderCalendar() {
   }
 }
 
-function renderBookList() {
-  const list = document.getElementById('bookList');
-  list.innerHTML = '';
-  booksInMonth(currentYear, currentMonth).forEach(b => {
+function renderBookShelf() {
+  const shelf = document.getElementById('bookShelf');
+  shelf.innerHTML = '';
+  const mb = booksInMonth(currentYear, currentMonth);
+  if (mb.length === 0) {
+    shelf.innerHTML = '<div class="empty-shelf">No books this month — tap + to add one.</div>';
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'book-list';
+  mb.forEach(b => {
     const card = document.createElement('div');
     card.className = 'book-card';
     const cover = document.createElement('div');
@@ -585,7 +636,6 @@ function renderBookList() {
         cover.appendChild(badge);
       }
     }
-
     if (b.coverUrl) {
       const img = document.createElement('img');
       img.src = b.coverUrl; img.alt = b.title;
@@ -597,7 +647,6 @@ function renderBookList() {
     const title = document.createElement('div');
     title.className = 'book-card-title';
     title.textContent = b.title;
-
     const rating = document.createElement('div');
     rating.className = 'book-card-rating';
     rating.textContent = b.rating ? `★ ${b.rating}` : '—';
@@ -606,41 +655,117 @@ function renderBookList() {
     list.appendChild(card);
     card.addEventListener('click', () => openEditModal(b));
   });
+  shelf.appendChild(list);
+}
+
+// ── DAY TAP → LOG MODAL ──────────────────────────────────────────────────
+
+function openDayModal(dateStr, dayNum) {
+  hideTooltip();
+  const mb = booksInMonth(currentYear, currentMonth).filter(b => {
+    const bs = parseDate(b.start);
+    const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
+    const d = parseDate(dateStr);
+    return d >= bs && d <= be;
+  });
+
+  if (mb.length === 0) {
+    // No books span this day — prompt to add one
+    alert('No books are active on this day.\nAdd a book first using the + button.');
+    return;
+  }
+
+  if (mb.length === 1) {
+    // Jump straight to the log entry modal
+    openLogModal(mb[0], dateStr);
+    return;
+  }
+
+  // Multiple books — show picker
+  const d = parseDate(dateStr);
+  document.getElementById('dayModalTitle').textContent = `Log Pages — ${MONTH_NAMES[d.getMonth()]} ${dayNum}`;
+  document.getElementById('dayModalSubtitle').textContent = 'Which book did you read?';
+
+  const listEl = document.getElementById('dayBookList');
+  listEl.innerHTML = '';
+  mb.forEach(b => {
+    const item = document.createElement('div');
+    item.className = 'day-book-item';
+    const logged = pagesOnDate(dateStr, b.id);
+    item.innerHTML = `
+      <div class="day-book-dot" style="background:${b.color}"></div>
+      <div class="day-book-name">${b.title}</div>
+      <div class="day-book-logged">${logged > 0 ? logged + ' pg' : ''}</div>
+    `;
+    item.addEventListener('click', () => {
+      closeModal('dayModalOverlay');
+      openLogModal(b, dateStr);
+    });
+    listEl.appendChild(item);
+  });
+
+  document.getElementById('dayModalOverlay').classList.add('open');
+}
+
+function openLogModal(book, dateStr) {
+  const d = parseDate(dateStr);
+  document.getElementById('logModalTitle').textContent = book.title;
+  document.getElementById('logModalSubtitle').textContent =
+    `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  document.getElementById('logBookId').value = book.id;
+  document.getElementById('logDate').value = dateStr;
+  const existing = pagesOnDate(dateStr, book.id);
+  document.getElementById('logPages').value = existing > 0 ? existing : '';
+  document.getElementById('logModalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('logPages').focus(), 350);
+}
+
+function submitLog() {
+  const bookId = parseInt(document.getElementById('logBookId').value);
+  const dateStr = document.getElementById('logDate').value;
+  const pages = parseInt(document.getElementById('logPages').value) || 0;
+
+  if (!readingLog[dateStr]) readingLog[dateStr] = {};
+  if (pages <= 0) {
+    delete readingLog[dateStr][bookId];
+    if (Object.keys(readingLog[dateStr]).length === 0) delete readingLog[dateStr];
+  } else {
+    readingLog[dateStr][bookId] = pages;
+  }
+
+  closeModal('logModalOverlay');
+  saveData();
+  render();
 }
 
 // ── TOOLTIP ──────────────────────────────────────────────────────────────
-
 function showTooltip(e, book) {
   const tt = document.getElementById('tooltip');
   document.getElementById('ttTitle').textContent = book.title;
-  document.getElementById('ttAuthor').textContent = book.author;
-  document.getElementById('ttPages').textContent = `${book.pages} pages`;
-  document.getElementById('ttRating').textContent = book.rating ? `★ ${book.rating}` : 'Reading';
-  document.getElementById('ttStatus').textContent = book.status === 'reading' ? 'In Progress' : book.status.toUpperCase();
+  document.getElementById('ttAuthor').textContent = book.author || '';
+  document.getElementById('ttPages').textContent = book.pages ? `${book.pages} pages` : '';
+  document.getElementById('ttRating').textContent = book.rating ? `★ ${book.rating}` : '';
+  document.getElementById('ttStatus').textContent = book.status === 'reading' ? 'In Progress' : book.status === 'dnf' ? 'DNF' : 'Finished';
   const recapEl = document.getElementById('ttRecap');
   if (book.recap) { recapEl.textContent = book.recap; recapEl.style.display = 'block'; }
   else { recapEl.style.display = 'none'; }
   const cw = document.getElementById('ttCoverWrap');
   const ci = document.getElementById('ttCover');
-  if (book.coverUrl) {
-    ci.src = book.coverUrl;
-    ci.onload = () => { cw.style.display = 'block'; };
-    ci.onerror = () => { cw.style.display = 'none'; };
-  } else { cw.style.display = 'none'; }
+  if (book.coverUrl) { ci.src = book.coverUrl; ci.onload = () => { cw.style.display='block'; }; ci.onerror = () => { cw.style.display='none'; }; }
+  else { cw.style.display = 'none'; }
   if (e) {
-    const x = Math.min(e.clientX + 12, window.innerWidth - 240);
-    const y = Math.min(e.clientY + 12, window.innerHeight - 160);
-    tt.style.left = x + 'px'; tt.style.top = y + 'px'; tt.style.bottom = 'auto';
+    tt.style.left = Math.min(e.clientX + 12, window.innerWidth - 245) + 'px';
+    tt.style.top = Math.min(e.clientY + 12, window.innerHeight - 170) + 'px';
+    tt.style.bottom = 'auto';
   }
   tt.classList.add('visible');
 }
 function hideTooltip() { document.getElementById('tooltip').classList.remove('visible'); }
-
 document.addEventListener('mousemove', e => {
   const tt = document.getElementById('tooltip');
   if (tt.classList.contains('visible')) {
-    tt.style.left = Math.min(e.clientX + 12, window.innerWidth - 240) + 'px';
-    tt.style.top = Math.min(e.clientY + 12, window.innerHeight - 160) + 'px';
+    tt.style.left = Math.min(e.clientX + 12, window.innerWidth - 245) + 'px';
+    tt.style.top = Math.min(e.clientY + 12, window.innerHeight - 170) + 'px';
   }
 });
 document.addEventListener('click', e => {
@@ -648,7 +773,6 @@ document.addEventListener('click', e => {
 });
 
 // ── MONTH NAV ────────────────────────────────────────────────────────────
-
 function changeMonth(delta) {
   currentMonth += delta;
   if (currentMonth > 11) { currentMonth = 0; currentYear++; }
@@ -657,7 +781,6 @@ function changeMonth(delta) {
 }
 
 // ── COLOR PICKER ─────────────────────────────────────────────────────────
-
 function buildColorPicker(containerId, getSelected, setSelected) {
   const picker = document.getElementById(containerId);
   picker.innerHTML = '';
@@ -667,46 +790,39 @@ function buildColorPicker(containerId, getSelected, setSelected) {
     sw.style.background = c;
     sw.onclick = () => {
       picker.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-      sw.classList.add('selected');
-      setSelected(c);
+      sw.classList.add('selected'); setSelected(c);
     };
     picker.appendChild(sw);
   });
 }
-
 function setCoverPreview(inputId, wrapId, imgId) {
   const url = document.getElementById(inputId).value.trim();
   const wrap = document.getElementById(wrapId), img = document.getElementById(imgId);
-  if (url) {
-    img.src = url;
-    img.onload = () => { wrap.style.display = 'block'; };
-    img.onerror = () => { wrap.style.display = 'none'; };
-  } else { wrap.style.display = 'none'; }
+  if (url) { img.src = url; img.onload = () => { wrap.style.display='block'; }; img.onerror = () => { wrap.style.display='none'; }; }
+  else { wrap.style.display = 'none'; }
 }
 
 // ── ADD MODAL ────────────────────────────────────────────────────────────
-
 function openAddModal() {
   addSelectedColor = COLORS[0];
   buildColorPicker('addColorPicker', () => addSelectedColor, c => { addSelectedColor = c; });
   ['addTitle','addAuthor','addPages','addRating','addRecap','addCoverUrl'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('addStart').value = toDateStr(new Date());
   document.getElementById('addEnd').value = '';
-  document.getElementById('addStatus').value = 'read';
+  document.getElementById('addStatus').value = 'reading';
   document.getElementById('addCoverPreviewWrap').style.display = 'none';
   document.getElementById('addCoverUrl').oninput = () => setCoverPreview('addCoverUrl','addCoverPreviewWrap','addCoverPreview');
   document.getElementById('addModalOverlay').classList.add('open');
 }
-
 function submitAddBook() {
   const title = document.getElementById('addTitle').value.trim();
   const start = document.getElementById('addStart').value;
-  if (!title || !start) { alert('Please fill in at least a title and start date.'); return; }
+  if (!title || !start) { alert('Please enter a title and start date.'); return; }
   books.push({
     id: nextId++, title,
     author: document.getElementById('addAuthor').value.trim(),
     start, end: document.getElementById('addEnd').value || null,
-    pages: parseInt(document.getElementById('addPages').value) || 200,
+    pages: parseInt(document.getElementById('addPages').value) || null,
     rating: parseFloat(document.getElementById('addRating').value) || null,
     status: document.getElementById('addStatus').value,
     recap: document.getElementById('addRecap').value.trim(),
@@ -717,7 +833,6 @@ function submitAddBook() {
 }
 
 // ── EDIT MODAL ───────────────────────────────────────────────────────────
-
 function openEditModal(book) {
   hideTooltip();
   editSelectedColor = book.color || COLORS[0];
@@ -729,7 +844,7 @@ function openEditModal(book) {
   document.getElementById('editEnd').value = book.end || '';
   document.getElementById('editPages').value = book.pages || '';
   document.getElementById('editRating').value = book.rating != null ? book.rating : '';
-  document.getElementById('editStatus').value = book.status || 'read';
+  document.getElementById('editStatus').value = book.status || 'reading';
   document.getElementById('editRecap').value = book.recap || '';
   document.getElementById('editCoverUrl').value = book.coverUrl || '';
   const wrap = document.getElementById('editCoverPreviewWrap');
@@ -737,7 +852,46 @@ function openEditModal(book) {
   if (book.coverUrl) { prev.src = book.coverUrl; wrap.style.display = 'block'; }
   else { wrap.style.display = 'none'; }
   document.getElementById('editCoverUrl').oninput = () => setCoverPreview('editCoverUrl','editCoverPreviewWrap','editCoverPreview');
+
+  // Render reading log
+  renderEditLog(book.id);
   document.getElementById('editModalOverlay').classList.add('open');
+}
+
+function renderEditLog(bookId) {
+  const logEl = document.getElementById('editLogList');
+  logEl.innerHTML = '';
+  // Collect all dates that have entries for this book
+  const entries = Object.entries(readingLog)
+    .filter(([,dayLog]) => dayLog[bookId] > 0)
+    .map(([date, dayLog]) => ({ date, pages: dayLog[bookId] }))
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  if (entries.length === 0) {
+    logEl.innerHTML = '<div class="log-empty">No pages logged yet. Tap a day on the calendar to log reading sessions.</div>';
+    return;
+  }
+  entries.forEach(({ date, pages }) => {
+    const d = parseDate(date);
+    const row = document.createElement('div');
+    row.className = 'log-entry';
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'log-entry-date';
+    dateSpan.textContent = `${MONTH_NAMES[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()}`;
+    const pagesSpan = document.createElement('span');
+    pagesSpan.className = 'log-entry-pages';
+    pagesSpan.textContent = pages + ' pages';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'log-entry-del';
+    delBtn.textContent = '×';
+    delBtn.onclick = () => {
+      delete readingLog[date][bookId];
+      if (Object.keys(readingLog[date]).length === 0) delete readingLog[date];
+      saveData(); renderEditLog(bookId); render();
+    };
+    row.appendChild(dateSpan); row.appendChild(pagesSpan); row.appendChild(delBtn);
+    logEl.appendChild(row);
+  });
 }
 
 function submitEditBook() {
@@ -750,7 +904,7 @@ function submitEditBook() {
     author: document.getElementById('editAuthor').value.trim(),
     start: document.getElementById('editStart').value,
     end: document.getElementById('editEnd').value || null,
-    pages: parseInt(document.getElementById('editPages').value) || books[idx].pages,
+    pages: parseInt(document.getElementById('editPages').value) || null,
     rating: parseFloat(document.getElementById('editRating').value) || null,
     status: document.getElementById('editStatus').value,
     recap: document.getElementById('editRecap').value.trim(),
@@ -764,16 +918,19 @@ function deleteBook() {
   const id = parseInt(document.getElementById('editBookId').value);
   if (!confirm('Remove this book from your calendar?')) return;
   books = books.filter(b => b.id !== id);
+  // Remove log entries for this book
+  Object.keys(readingLog).forEach(date => {
+    delete readingLog[date][id];
+    if (Object.keys(readingLog[date]).length === 0) delete readingLog[date];
+  });
   closeModal('editModalOverlay'); saveData(); render();
 }
 
 // ── MODAL HELPERS ─────────────────────────────────────────────────────────
-
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function handleOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-
 loadData();
 render();
 </script>
