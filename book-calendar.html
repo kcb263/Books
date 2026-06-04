@@ -664,9 +664,10 @@ function renderBookShelf() {
 
 function openDayModal(dateStr, dayNum) {
   hideTooltip();
+  const todayDate = parseDate(toDateStr(new Date()));
   const mb = booksInMonth(currentYear, currentMonth).filter(b => {
     const bs = parseDate(b.start);
-    const be = b.end ? parseDate(b.end) : new Date(currentYear, currentMonth+1, 0);
+    const be = b.end ? parseDate(b.end) : todayDate;
     const d = parseDate(dateStr);
     return d >= bs && d <= be;
   });
